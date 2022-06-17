@@ -5,25 +5,6 @@ class LgcConfiguration:
         self.multiplier = multiplier
         self.increment = increment
 
-    @property
-    def seed(self):
-        return self.seed
-
-    @seed.setter
-    def seed(self, seed):
-        if not seed:
-            raise Exception("description cannot be empty")
-        self._seed = seed
-
-    @property
-    def value(self):
-        return self._value
-
-    @value.setter
-    def value(self, v):
-        if not (v > 0): raise Exception("value must be greater than zero")
-        self._value = v
-
 
 class LgcConfigurationFactory:
     CONFIGURATIONS = {

@@ -36,19 +36,19 @@ def generate_lcg(num_iterations, lgc_configuration=None):
     if lgc_configuration is None:
         lgc_configuration = LgcConfigurationFactory.get_lgc_configuration('randu')
 
-    if lgc_configuration is not LgcConfiguration:
-        raise Exception("lgc_configuration is should be an instance of LgcConfiguration")
+    if not isinstance(lgc_configuration, LgcConfiguration):
+        raise Exception("lgc_configuration should be an instance of LgcConfiguration")
 
     # Initialize variables
-    x_value = lgc_configuration["seed"]
-    a = lgc_configuration["multiplier"]
-    c = lgc_configuration["increment"]
-    m = lgc_configuration["mod"]
+    x_value = lgc_configuration.seed
+    a = lgc_configuration.multiplier
+    c = lgc_configuration.increment
+    m = lgc_configuration.mod
 
     counter = 0
     random_numbers = []
     while counter < num_iterations:
-        x_value = (a * x_value + c) % m
+        x_value = ((a * x_value) + c) % m
         writeValue = x_value / m
         random_numbers.append(writeValue)
         counter = counter + 1
