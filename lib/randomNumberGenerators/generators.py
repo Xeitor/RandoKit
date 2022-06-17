@@ -1,6 +1,6 @@
 import random as rnd
 from lib.randomNumberGenerators.lgc_configuration import LgcConfiguration, LgcConfigurationFactory
-from lib.utilities.utils import calculate_central_digits
+from lib.randomNumberGenerators.utils import calculate_central_digits
 
 
 def python_rand(num_iterations, seed=None):

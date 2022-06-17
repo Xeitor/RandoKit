@@ -1,7 +1,7 @@
 import unittest
 
 from lib.randomNumberGenerators.lgc_configuration import LgcConfigurationFactory
-from lib.randomNumberGenerators.linearCongruentialGenerator import *
+from lib.randomNumberGenerators.generators import *
 
 
 class TestGenerators(unittest.TestCase):
