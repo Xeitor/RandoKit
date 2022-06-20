@@ -1,12 +1,12 @@
 import math
+import numpy as np
+from lib.statisticalTests.utils import *
 
-from lib.statisticalTests.utils import calculate_streaks
 
-
-def ji_square_statistic(intervals):
+def chi_square_statistic(intervals):
     """
     JI-Square test for uniformity of distribution.
-    :param intervals: array of ints - has observed frecuencies of every interval
+    :param intervals: array of ints - has observed frequencies of every interval
     :return: float - ji square statistic value
     """
     total_observations = 0
@@ -14,11 +14,11 @@ def ji_square_statistic(intervals):
         total_observations += observedFrequency
 
     expected_frequency = total_observations / len(intervals)
-    ji_square_value = 0
+    chi_square_value = 0
     for observedFrequency in intervals:
-        ji_square_value = ji_square_value + ((observedFrequency - expected_frequency) ** 2) / expected_frequency
+        chi_square_value = chi_square_value + ((observedFrequency - expected_frequency) ** 2) / expected_frequency
 
-    return ji_square_value
+    return chi_square_value
 
 
 def streaks_statistic(random_numbers):
@@ -46,9 +46,7 @@ def streaks_statistic(random_numbers):
 
 
 def kolmogorov_smirnov_statistic(random_numbers):
-    # Ordenar sucesion en orden ascendente
     random_numbers.sort()
-
     successionSize = len(random_numbers)
     maximumDifference = 0
 
@@ -61,6 +59,52 @@ def kolmogorov_smirnov_statistic(random_numbers):
             maximumDifference = difference
 
     return maximumDifference
+
+
+def chi_square_uniformity_test(random_numbers, degrees_of_freedom=10, significance_level=0.05):
+    """
+    :param random_numbers: array containing the random numbers to test.
+    :param significance_level: significance level for the test.
+    :param degrees_of_freedom: intervals to divide the interval numbers into
+    :return: hash with both the table critical value and the result of the test.
+    """
+    print('H0: Los números están distribuidos de forma uniforme')
+    print('H1: Los números no están distribuidos de forma uniforme')
+    histogram = np.histogram(random_numbers, bins=degrees_of_freedom)[0]
+    ji_square_critical_value = chi_square_critical_value(degrees_of_freedom, significance_level)
+    chi_square_statistic_ = chi_square_statistic(histogram)
+
+    return {'table_critical_value': ji_square_critical_value, 'statistic_value': chi_square_statistic_}
+
+
+def kolmogorov_smirnov_uniformity_test(random_numbers, significance_level=0.05):
+    """
+    :param random_numbers: array containing the random numbers to test.
+    :param significance_level: significance level for the test.
+    :return: hash with both the table critical value and the result of the test.
+    """
+    print('H0: Los números están distribuidos de forma uniforme')
+    print('H1: Los números no están distribuidos de forma uniforme')
+    kolmogorov_smirnov_statistic_value = kolmogorov_smirnov_statistic(random_numbers)
+    kolmogorov_smirnov_critical_value = ks_critical_value(len(random_numbers), significance_level)
+
+    return {'table_critical_value': kolmogorov_smirnov_critical_value,
+            'statistic_value': kolmogorov_smirnov_statistic_value}
+
+
+def streaks_independence_test(random_numbers, significance_level=0.05):
+    """
+    :param random_numbers: array containing the random numbers to test.
+    :param significance_level: significance level for the test.
+    :return: hash with both the table critical value and the result of the test.
+    """
+    print('H0: Los números son independientes ')
+    print('H1: Los números no son independientes')
+    streaks_statistic_value = streaks_statistic(random_numbers)
+    normal_distribution_critical_value_ = normal_distribution_critical_value(significance_level)
+
+    return {'table_critical_value': [normal_distribution_critical_value_ * -1, normal_distribution_critical_value_],
+            'statistic_value': streaks_statistic_value}
 
 
 def poker_test():
