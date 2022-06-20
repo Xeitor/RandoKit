@@ -3,16 +3,13 @@ from lib.randomNumberGenerators.lgc_configuration import LgcConfiguration, LgcCo
 from lib.randomNumberGenerators.utils import calculate_central_digits
 
 
-def python_rand(num_iterations, seed=None):
+def python_rand(num_iterations, seed=1):
     """
     Run the built-in python random number generator
     :param seed:  int - number of random numbers requested
     :param num_iterations:  int - number of random numbers requested
     :return: array - contains all random numbers generated
     """
-    # Initialize seed
-    if seed is None:
-        seed = 1
     rnd.seed(seed)
 
     random_numbers = []
@@ -56,7 +53,7 @@ def generate_lcg(num_iterations, lgc_configuration=None):
     return random_numbers
 
 
-def middle_squares(num_iterations, seed, length):
+def middle_squares(num_iterations, seed=675248, length=4):
     """
     Middle Squares generator
     :param length: int - length of the generated random numbers
@@ -74,5 +71,6 @@ def middle_squares(num_iterations, seed, length):
         seed = central_part
         normalized_number = central_part / normalizer
         random_numbers.append(normalized_number)
+        counter = counter + 1
 
     return random_numbers
