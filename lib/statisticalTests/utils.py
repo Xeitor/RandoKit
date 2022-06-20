@@ -1,3 +1,20 @@
+from scipy.stats import chi2
+from scipy.stats import ksone
+from scipy.stats import norm
+
+
+def ks_critical_value(n_trials, alpha):
+    return ksone.ppf(1 - alpha / 2, n_trials)
+
+
+def chi_square_critical_value(degrees_of_freedom, significance_level):
+    return chi2.isf(df=degrees_of_freedom - 1, q=significance_level)
+
+
+def normal_distribution_critical_value(significance_level):
+    return norm.ppf(1 - significance_level / 2)
+
+
 def calculate_streaks(rachas):
     streaks = 0
     previous = rachas[0]
