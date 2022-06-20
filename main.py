@@ -1,16 +1,193 @@
-# This is a sample Python script.
+from __future__ import print_function, unicode_literals
+from PyInquirer import prompt
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+from lib.randomNumberGenerators.generators import generate_lcg, middle_squares, python_rand
+from lib.randomNumberGenerators.lgc_configuration import LgcConfiguration
+from lib.statisticalTests.statistical_tests import chi_square_uniformity_test, kolmogorov_smirnov_uniformity_test, \
+    streaks_independence_test
+from lib.utilities.utils import write_array_to_file, read_file_to_array
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+def main():
+    questions = [
+        {
+            'type': 'list',
+            'name': 'command',
+            'message': 'Elegir comando a utilizar',
+            'choices': [
+                {
+                    'name': 'Generar números aleatorios',
+                    'value': 0
+                },
+                {
+                    'name': 'Validar números generados',
+                    'value': 1
+                }]
+        }
+    ]
+
+    answers = prompt(questions)
+    if answers['command'] == 0:
+        generate_random_numbers()
+    elif answers['command'] == 1:
+        validate_random_numbers()
 
 
-# Press the green button in the gutter to run the script.
+def generate_random_numbers():
+    questions = [
+        {
+            'type': 'list',
+            'name': 'generator',
+            'message': 'Elegir generador a utilizar',
+            'choices': [
+                {
+                    'name': 'Congruencial lineal',
+                    'value': 'lcg'
+                },
+                {
+                    'name': 'Cuadrados medios',
+                    'value': 'middle_squares'
+                },
+                {
+                    'name': 'Mersenne Twister (Python rand)',
+                    'value': 'python_rand'
+                }
+            ]
+        },
+        {
+            'type': 'input',
+            'name': 'file_name',
+            'message': 'Path del archivo para guardar los números generados',
+        },
+        {
+            'type': 'input',
+            'name': 'num_iterations',
+            'message': 'Cantidad de números aleatorios a generar',
+        }
+
+    ]
+    answers = prompt(questions)
+    configuration = {'num_iterations': int(answers['num_iterations']), 'file_name': answers['file_name']}
+    if answers['generator'] == 'lcg':
+        questions = [
+            {
+                'type': 'input',
+                'name': 'mod',
+                'message': 'Ingrese módulo',
+            },
+            {
+                'type': 'input',
+                'name': 'seed',
+                'message': 'Ingrese semilla',
+            },
+            {
+                'type': 'input',
+                'name': 'multiplier',
+                'message': 'Ingrese multiplicador',
+            },
+            {
+                'type': 'input',
+                'name': 'increment',
+                'message': 'Ingrese incremento',
+            },
+        ]
+        lgc_configuration = prompt(questions)
+        lgc_configuration = LgcConfiguration(mod=int(lgc_configuration['mod']), seed=int(lgc_configuration['seed']),
+                                             multiplier=int(lgc_configuration['multiplier']),
+                                             increment=int(lgc_configuration['increment']))
+        random_numbers = generate_lcg(num_iterations=configuration['num_iterations'],
+                                      lgc_configuration=lgc_configuration)
+    elif answers['generator'] == 'middle_squares':
+        questions = [
+            {
+                'type': 'input',
+                'name': 'seed',
+                'message': 'Ingrese semilla'
+            },
+            {
+                'type': 'input',
+                'name': 'length',
+                'message': 'Ingrese longitud de los números aleatorios'
+            }]
+        middle_squares_configuration = prompt(questions)
+        random_numbers = middle_squares(num_iterations=int(configuration['num_iterations']),
+                                        seed=int(middle_squares_configuration['seed']),
+                                        length=int(middle_squares_configuration['length']))
+    elif answers['generator'] == 'python_rand':
+        questions = [
+            {
+                'type': 'input',
+                'name': 'seed',
+                'message': 'Ingrese semilla'
+            }]
+        python_rand_configuration = prompt(questions)
+        random_numbers = python_rand(num_iterations=int(configuration['num_iterations']),
+                                     seed=int(python_rand_configuration['seed']))
+
+    write_array_to_file(random_numbers, configuration['file_name'])
+
+
+def validate_random_numbers():
+    questions = [
+        {
+            'type': 'input',
+            'name': 'file_path',
+            'message': 'Path del archivo con los números aleatorios'
+        },
+        {
+            'type': 'input',
+            'name': 'significance_level',
+            'message': 'Ingrese el nivel de significancia para la prueba'
+        },
+        {
+            'type': 'list',
+            'name': 'test',
+            'message': 'Elegir prueba a utilizar',
+            'choices': [
+                {
+                    'name': 'Chi-cuadrado',
+                    'value': 'chi_squared'
+                },
+                {
+                    'name': 'Kolmogorov-Smirnov',
+                    'value': 'kolmogorov_smirnov'
+                },
+                {
+                    'name': 'Rachas',
+                    'value': 'streaks'
+                }
+            ]
+        }
+    ]
+    answers = prompt(questions)
+    random_numbers = read_file_to_array(answers['file_path'])
+    results = None
+    if answers['test'] == 'chi_squared':
+        results = chi_square_uniformity_test(random_numbers=random_numbers,
+                                             significance_level=float(answers['significance_level']))
+    elif answers['test'] == 'kolmogorov_smirnov':
+        results = kolmogorov_smirnov_uniformity_test(random_numbers=random_numbers,
+                                                     significance_level=float(answers['significance_level']))
+    elif answers['test'] == 'streaks':
+        results = streaks_independence_test(random_numbers=random_numbers,
+                                            significance_level=float(answers['significance_level']))
+    process_results(results)
+
+
+def process_results(results):
+    statistic_value = results['statistic_value']
+    table_critical_value = results['table_critical_value']
+    if isinstance(table_critical_value, list):
+        if table_critical_value[0] < statistic_value <= table_critical_value[1]:
+            print(f"La hipotesis nula se acepta: {table_critical_value[0]} < {statistic_value} <= {table_critical_value[1]}")
+        else:
+            print(f"La hipotesis nula se rechaza, el estadístico calculado {statistic_value}, no se encuentra en el intervalo {table_critical_value[0]} < Z <= {table_critical_value[1]}")
+    else:
+        if statistic_value <= table_critical_value:
+            print(f"La hipotesis nula se acepta: {statistic_value} <= {table_critical_value}")
+        else:
+            print(f"La hipotesis nula se rechaza, {statistic_value} > {table_critical_value}")
+
+
 if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    main()
