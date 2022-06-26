@@ -4,7 +4,7 @@ from PyInquirer import prompt
 from lib.randomNumberGenerators.generators import generate_lcg, middle_squares, python_rand
 from lib.randomNumberGenerators.lgc_configuration import LgcConfiguration
 from lib.statisticalTests.statistical_tests import chi_square_uniformity_test, kolmogorov_smirnov_uniformity_test, \
-    streaks_independence_test
+    streaks_independence_test, serial_uniformity_test
 from lib.utilities.utils import write_array_to_file, read_file_to_array
 
 
@@ -140,9 +140,9 @@ def validate_random_numbers():
             'message': 'Ingrese el nivel de significancia para la prueba'
         },
         {
-            'type': 'list',
+            'type': 'checkbox',
             'name': 'test',
-            'message': 'Elegir prueba a utilizar',
+            'message': 'Elegir pruebas a realizar',
             'choices': [
                 {
                     'name': 'Chi-cuadrado',
@@ -155,6 +155,10 @@ def validate_random_numbers():
                 {
                     'name': 'Rachas',
                     'value': 'streaks'
+                },
+                {
+                    'name': 'Serial',
+                    'value': 'serial'
                 }
             ]
         }
@@ -162,16 +166,27 @@ def validate_random_numbers():
     answers = prompt(questions)
     random_numbers = read_file_to_array(answers['file_path'])
     results = None
-    if answers['test'] == 'chi_squared':
-        results = chi_square_uniformity_test(random_numbers=random_numbers,
-                                             significance_level=float(answers['significance_level']))
-    elif answers['test'] == 'kolmogorov_smirnov':
-        results = kolmogorov_smirnov_uniformity_test(random_numbers=random_numbers,
-                                                     significance_level=float(answers['significance_level']))
-    elif answers['test'] == 'streaks':
-        results = streaks_independence_test(random_numbers=random_numbers,
-                                            significance_level=float(answers['significance_level']))
-    process_results(results)
+    for test in answers['test']:
+        if test == 'serial':
+            print('Prueba de uniformidad serial')
+            dimensions = int(input("Ingrese cantidad de dimensiones para hacer la prueba: "))
+            freedom_degrees = int(input("Ingrese grados de libertad (intervalos del histograma): "))
+            results = serial_uniformity_test(random_numbers=random_numbers.copy(),
+                                             significance_level=float(answers['significance_level']),
+                                             dimensions=dimensions, freedom_degrees=freedom_degrees)
+        elif test == 'chi_squared':
+            print('Prueba de uniformidad Chi-Cuadrado')
+            results = chi_square_uniformity_test(random_numbers=random_numbers.copy(),
+                                                 significance_level=float(answers['significance_level']))
+        elif test == 'kolmogorov_smirnov':
+            print('Prueba de uniformidad Kolmogorov-Smirnov')
+            results = kolmogorov_smirnov_uniformity_test(random_numbers=random_numbers.copy(),
+                                                         significance_level=float(answers['significance_level']))
+        elif test == 'streaks':
+            print('Prueba de independencia Rachas')
+            results = streaks_independence_test(random_numbers=random_numbers.copy(),
+                                                significance_level=float(answers['significance_level']))
+        process_results(results)
 
 
 def process_results(results):
@@ -187,7 +202,6 @@ def process_results(results):
             print(f"La hipotesis nula se acepta: {statistic_value} <= {table_critical_value}")
         else:
             print(f"La hipotesis nula se rechaza, {statistic_value} > {table_critical_value}")
-
 
 if __name__ == '__main__':
     main()

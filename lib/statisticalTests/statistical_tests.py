@@ -1,5 +1,6 @@
 import math
 import numpy as np
+import time
 from lib.statisticalTests.utils import *
 
 
@@ -68,13 +69,13 @@ def chi_square_uniformity_test(random_numbers, degrees_of_freedom=10, significan
     :param degrees_of_freedom: intervals to divide the interval numbers into
     :return: hash with both the table critical value and the result of the test.
     """
-    print('H0: Los números están distribuidos de forma uniforme')
-    print('H1: Los números no están distribuidos de forma uniforme')
+    # print('H0: Los números están distribuidos de forma uniforme')
+    # print('H1: Los números no están distribuidos de forma uniforme')
     histogram = np.histogram(random_numbers, bins=degrees_of_freedom)[0]
-    ji_square_critical_value = chi_square_critical_value(degrees_of_freedom, significance_level)
+    chi_square_critical_value_ = chi_square_critical_value(degrees_of_freedom - 1, significance_level)
     chi_square_statistic_ = chi_square_statistic(histogram)
 
-    return {'table_critical_value': ji_square_critical_value, 'statistic_value': chi_square_statistic_}
+    return {'table_critical_value': chi_square_critical_value_.round(5), 'statistic_value': chi_square_statistic_.round(5)}
 
 
 def kolmogorov_smirnov_uniformity_test(random_numbers, significance_level=0.05):
@@ -98,18 +99,26 @@ def streaks_independence_test(random_numbers, significance_level=0.05):
     :param significance_level: significance level for the test.
     :return: hash with both the table critical value and the result of the test.
     """
-    print('H0: Los números son independientes ')
-    print('H1: Los números no son independientes')
+
     streaks_statistic_value = streaks_statistic(random_numbers)
     normal_distribution_critical_value_ = normal_distribution_critical_value(significance_level)
+
+    print('H0: Los números son independientes')
+    print('H1: Los números no son independientes')
 
     return {'table_critical_value': [normal_distribution_critical_value_ * -1, normal_distribution_critical_value_],
             'statistic_value': streaks_statistic_value}
 
 
-def poker_test():
-    return 0
+def serial_uniformity_test(random_numbers, significance_level, dimensions, freedom_degrees):
+    k = math.pow(freedom_degrees, dimensions)
+    arr = np.array(random_numbers)
+    dimensioned_array = np.reshape(random_numbers, (-1, dimensions))
+    histogram = np.histogramdd(dimensioned_array, bins=(freedom_degrees, freedom_degrees))[0].flatten(order='C')
+    chi_square_critical_value_ = chi_square_critical_value(k - 1, significance_level)
+    chi_square_statistic_ = chi_square_statistic(histogram)
 
+    print(f'H0: Los números están distribuidos uniformemente en {dimensions} dimensiones')
+    print(f'H0: Los números no están distribuidos uniformemente en {dimensions} dimensiones')
 
-def serial_test():
-    return 0
+    return {'table_critical_value': chi_square_critical_value_, 'statistic_value': chi_square_statistic_}

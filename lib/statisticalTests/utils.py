@@ -8,7 +8,9 @@ def ks_critical_value(n_trials, alpha):
 
 
 def chi_square_critical_value(degrees_of_freedom, significance_level):
-    return chi2.isf(df=degrees_of_freedom - 1, q=significance_level)
+    print(degrees_of_freedom)
+    print(significance_level)
+    return chi2.isf(df=degrees_of_freedom, q=significance_level)
 
 
 def normal_distribution_critical_value(significance_level):

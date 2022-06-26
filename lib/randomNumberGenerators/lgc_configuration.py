@@ -13,6 +13,13 @@ class LgcConfigurationFactory:
             'mod': (2 ** 31),
             'multiplier': 65539,
             'increment': 0
+        },
+        'pascal': {
+            'seed': 1,
+            'mod': (2 ** 32),
+            'multiplier': 134775813,
+            'increment': 1
+
         }
     }
 
